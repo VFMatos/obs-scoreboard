@@ -4,11 +4,13 @@
 obs = obslua
 
 --[[ Sources ]]--
-scoreLocalSource	= ""
-scoreVisitorSource	= ""
-faultLocalSource	= ""
-faultVisitorSource	= ""
-periodSource		= ""
+scoreLocalGameSource		= ""
+scoreVisitorGameSource		= ""
+scoreLocalIntervalSource	= ""
+scoreVisitorIntervalSource	= ""
+faultLocalSource			= ""
+faultVisitorSource			= ""
+periodSource				= ""
 
 --[[ Values ]]--
 scoreLocal		= 0
@@ -44,10 +46,12 @@ function reset(pressed)
 	end
 	
 	scoreLocal = 0
-	setSource(scoreLocal, scoreLocalSource)
+	setSource(scoreLocal, scoreLocalGameSource)
+	setSource(scoreLocal, scoreLocalIntervalSource)
 	
 	scoreVisitor = 0
-	setSource(scoreVisitor, scoreVisitorSource)
+	setSource(scoreVisitor, scoreVisitorGameSource)
+	setSource(scoreVisitor, scoreVisitorIntervalSource)
 	
 	faultLocal = 0
 	setSource(faultLocal, faultLocalSource)
@@ -63,7 +67,7 @@ end
 	Sets the valueSource with the given value
 	]]--
 function setSource(value, valueSource)
-	local text = string.format("%02d", value)
+	local text = string.format("%d", value)
 	local source = obs.obs_get_source_by_name(valueSource)
 	if source ~= nil then
 		local settings = obs.obs_data_create()
@@ -103,7 +107,8 @@ function btn_incrementScoreLocal(pressed)
 	if not pressed then
 		return
 	end
-	scoreLocal = increment(scoreLocal,scoreLocalSource)
+	scoreLocal = increment(scoreLocal,scoreLocalGameSource)
+	setSource(scoreLocal, scoreLocalIntervalSource)
 end
 
 --[[
@@ -115,7 +120,8 @@ function btn_decrementScoreLocal(pressed)
 	end
 
 	if scoreLocal > 0 then
-		scoreLocal = decrement(scoreLocal, scoreLocalSource)
+		scoreLocal = decrement(scoreLocal, scoreLocalGameSource)
+		setSource(scoreLocal, scoreLocalIntervalSource)
 	end
 end
 
@@ -126,7 +132,8 @@ function btn_incrementScoreVisitor(pressed)
 	if not pressed then
 		return
 	end
-	scoreVisitor = increment(scoreVisitor,scoreVisitorSource)
+	scoreVisitor = increment(scoreVisitor,scoreVisitorGameSource)
+	setSource(scoreVisitor, scoreVisitorIntervalSource)
 end
 
 --[[
@@ -138,7 +145,8 @@ function btn_decrementScoreVisitor(pressed)
 	end
 	
 	if scoreVisitor > 0 then
-		scoreVisitor = decrement(scoreVisitor, scoreVisitorSource)
+		scoreVisitor = decrement(scoreVisitor, scoreVisitorGameSource)
+		setSource(scoreVisitor, scoreVisitorIntervalSource)
 	end
 end
 
@@ -330,10 +338,12 @@ function script_properties()
 	-- Creates a new properties object
 	local props = obs.obs_properties_create()
 	-- Creates combo boxes
-	local sLocal = obs.obs_properties_add_list(props, "cb_scoreLocal", "Local Score source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
-	local sVisitor = obs.obs_properties_add_list(props, "cb_scoreVisitor", "Visitor Score source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
-	local fLocal = obs.obs_properties_add_list(props, "cb_faultLocal", "Local Fault source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
-	local fVisitor = obs.obs_properties_add_list(props, "cb_faultVisitor", "Visitor Fault source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
+	local sLocalGame = obs.obs_properties_add_list(props, "cb_scoreLocalGame", "Local Score Game", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
+	local sVisitorGame = obs.obs_properties_add_list(props, "cb_scoreVisitorGame", "Visitor Score Game", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
+	local sLocalInterval = obs.obs_properties_add_list(props, "cb_scoreLocalInterval", "Local Score Interval", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
+	local sVisitorInterval = obs.obs_properties_add_list(props, "cb_scoreVisitorInterval", "Visitor Score Interval", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
+	local fLocal = obs.obs_properties_add_list(props, "cb_faultLocal", "Local Faults", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
+	local fVisitor = obs.obs_properties_add_list(props, "cb_faultVisitor", "Visitor Faults", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
 	local p = obs.obs_properties_add_list(props, "cb_period", "Period source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
 	
 	-- Enumerates all sources
@@ -344,8 +354,10 @@ function script_properties()
 			source_id = obs.obs_source_get_id(source)
 			if source_id == "text_gdiplus" or source_id == "text_ft2_source" then
 				local name = obs.obs_source_get_name(source)
-				obs.obs_property_list_add_string(sLocal, name, name)
-				obs.obs_property_list_add_string(sVisitor, name, name)
+				obs.obs_property_list_add_string(sLocalGame, name, name)
+				obs.obs_property_list_add_string(sVisitorGame, name, name)
+				obs.obs_property_list_add_string(sLocalInterval, name, name)
+				obs.obs_property_list_add_string(sVisitorInterval, name, name)
 				obs.obs_property_list_add_string(fLocal, name, name)
 				obs.obs_property_list_add_string(fVisitor, name, name)
 				obs.obs_property_list_add_string(p, name, name)
@@ -382,8 +394,10 @@ end
 	Updates the settings when settings are changed
 	]]--
 function script_update(settings)
-	scoreLocalSource = obs.obs_data_get_string(settings, "cb_scoreLocal")
-	scoreVisitorSource = obs.obs_data_get_string(settings, "cb_scoreVisitor")
+	scoreLocalGameSource = obs.obs_data_get_string(settings, "cb_scoreLocalGame")
+	scoreVisitorGameSource = obs.obs_data_get_string(settings, "cb_scoreVisitorGame")
+	scoreLocalIntervalSource = obs.obs_data_get_string(settings, "cb_scoreLocalInterval")
+	scoreVisitorIntervalSource = obs.obs_data_get_string(settings, "cb_scoreVisitorInterval")
 	faultLocalSource = obs.obs_data_get_string(settings, "cb_faultLocal")
 	faultVisitorSource = obs.obs_data_get_string(settings, "cb_faultVisitor")
 	periodSource = obs.obs_data_get_string(settings, "cb_period")
@@ -515,4 +529,6 @@ function script_load(settings)
 	hotkey_save_array = obs.obs_data_get_array(settings, "hk_decrementPeriod")
 	obs.obs_hotkey_load(hotkey_decrementPeriod, hotkey_save_array)
 	obs.obs_data_array_release(hotkey_save_array)
+	
+	reset(true)
 end
