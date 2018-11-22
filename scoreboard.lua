@@ -67,7 +67,7 @@ end
 	Sets the valueSource with the given value
 	]]--
 function setSource(value, valueSource)
-	local text = string.format("%d", value)
+	local text = string.format("%2d", value)
 	local source = obs.obs_get_source_by_name(valueSource)
 	if source ~= nil then
 		local settings = obs.obs_data_create()
