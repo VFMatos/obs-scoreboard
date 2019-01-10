@@ -522,7 +522,7 @@ function script_load(settings)
 	obs.obs_hotkey_load(hotkey_resetFaults, hotkey_save_array)
 	obs.obs_data_array_release(hotkey_save_array)
 	
-	hotkey_save_array = obs.obs_data_get_array(settings, "hk_decrementPeriod")
+	hotkey_save_array = obs.obs_data_get_array(settings, "hk_incrementPeriod")
 	obs.obs_hotkey_load(hotkey_incrementPeriod, hotkey_save_array)
 	obs.obs_data_array_release(hotkey_save_array)
 	
